@@ -1,10 +1,20 @@
 package com.example.spotme_mvp.entities
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import java.io.Serializable
 
-@Entity
+@Entity(
+    tableName = "parking",
+    foreignKeys = [ForeignKey(
+        entity = User::class,
+        parentColumns = ["id"],
+        childColumns = ["userId"],
+        onDelete = ForeignKey.CASCADE
+    )]
+)
 class Parking : Serializable {
     @PrimaryKey(autoGenerate = true)
     var id: Long? = null
@@ -15,6 +25,8 @@ class Parking : Serializable {
     var startTime: Long = 0
     var endTime: Long = 0
     var description: String? = null
+    @ColumnInfo(name = "userId", index = true)
+    var userId: Long? = null
 
     constructor()
 
@@ -25,7 +37,8 @@ class Parking : Serializable {
         allowedTime: Long,
         startTime: Long,
         endTime: Long,
-        description: String?
+        description: String?,
+        userId: Long?
     ) {
         this.title = title
         this.latitude = latitude
@@ -34,5 +47,6 @@ class Parking : Serializable {
         this.startTime = startTime
         this.endTime = endTime
         this.description = description
+        this.userId = userId
     }
 }

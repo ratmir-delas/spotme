@@ -3,9 +3,12 @@ package com.example.spotme_mvp.ui.parking;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.TimePickerDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +27,7 @@ import androidx.room.Room;
 import com.example.spotme_mvp.R;
 import com.example.spotme_mvp.database.AppDatabase;
 import com.example.spotme_mvp.entities.Parking;
+import com.example.spotme_mvp.utils.UserSession;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -99,19 +103,28 @@ public class ParkingFormFragment extends Fragment {
             parking = new Parking();
         }
 
+        long userId = UserSession.getInstance(requireContext()).getUserId();
+
+        if (userId == -1) {
+            Toast.makeText(requireContext(), "Utilizador não está loggedIn!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         // Atualizar os valores do estacionamento
         parking.setTitle(titleEditText.getText().toString());
         parking.setLatitude(Double.parseDouble(latitudeEditText.getText().toString()));
         parking.setLongitude(Double.parseDouble(longitudeEditText.getText().toString()));
         parking.setAllowedTime((long) Integer.parseInt(durationEditText.getText().toString()) * 60 * 1000);
         parking.setDescription(descriptionEditText.getText().toString());
+        parking.setUserId(userId);
 
         if (startTimeCalendar != null) {
             long startTimeMillis = startTimeCalendar.getTimeInMillis();
             parking.setStartTime(startTimeMillis);
         }
 
-        AppDatabase db = Room.databaseBuilder(requireContext(), AppDatabase.class, "database-name").build();
+        AppDatabase db = AppDatabase.getInstance(requireContext());
+
         Parking finalParking = parking;
         Executors.newSingleThreadExecutor().execute(() -> {
             if (finalParking.getId() == null) {
@@ -125,7 +138,6 @@ public class ParkingFormFragment extends Fragment {
             );
         });
     }
-
 
     private void requestLocation() {
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&

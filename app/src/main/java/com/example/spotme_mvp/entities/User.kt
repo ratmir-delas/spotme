@@ -1,6 +1,11 @@
 package com.example.spotme_mvp.entities
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "users")
 class User {
+    @PrimaryKey(autoGenerate = true)
     var id: Long? = null
     var username: String? = null
     var password: String? = null
@@ -9,7 +14,7 @@ class User {
 
     constructor()
 
-    constructor(username: String?, password: String?, email: String?, phone: String?) {
+    constructor(username: String?, password: String?, email: String?, phone : String?) {
         this.username = username
         this.password = password
         this.email = email

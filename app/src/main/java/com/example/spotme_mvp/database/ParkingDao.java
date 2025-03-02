@@ -16,6 +16,9 @@ public interface ParkingDao {
     @Query("SELECT * FROM parking")
     List<Parking> getAll();
 
+    @Query("SELECT * FROM parking WHERE userId = :userId")
+    List<Parking> getParkingsByUserId(long userId);
+
     @Query("SELECT * FROM parking WHERE id = :id")
     Parking getById(int id);
 
