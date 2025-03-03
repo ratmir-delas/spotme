@@ -93,7 +93,7 @@ public class RegisterActivity extends AppCompatActivity {
             User newUser = userDao.getUserByEmail(users[0].getEmail());
             if (newUser != null) {
                 // Após inserir, configuramos a sessão
-                UserSession.getInstance(getApplicationContext()).setUserId(newUser.getId());
+                UserSession.getInstance(getApplicationContext()).setUser(newUser);
             }
             return "Conta registada com sucesso!";
         }

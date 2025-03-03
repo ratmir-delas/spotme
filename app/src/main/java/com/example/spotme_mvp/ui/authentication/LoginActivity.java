@@ -76,9 +76,7 @@ public class LoginActivity extends AppCompatActivity {
 
             if (user.getPassword().equals(password)) {
 
-                UserSession.getInstance(getApplicationContext()).setUserId(user.getId());
-                UserSession.getInstance(getApplicationContext()).setUserName(user.getUsername());
-                UserSession.getInstance(getApplicationContext()).setUserEmail(user.getEmail());
+                UserSession.getInstance(getApplicationContext()).setUser(user);
 
                 runOnUiThread(() -> {
                     Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();

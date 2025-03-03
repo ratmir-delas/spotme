@@ -64,6 +64,13 @@ public class UserSession {
         return sharedPreferences.getString(KEY_USER_EMAIL, null);  // null is the default value if not stored
     }
 
+    public void setUser(User user) {
+        editor.putLong(KEY_USER_ID, user.getId());
+        editor.putString(KEY_USER_NAME, user.getUsername());
+        editor.putString(KEY_USER_EMAIL, user.getEmail());
+        editor.apply();
+    }
+
     // Clear session (remove user details)
     public void clearSession() {
         editor.remove(KEY_USER_ID);
