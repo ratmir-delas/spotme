@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import com.example.spotme_mvp.entities.User;
+
 public class UserSession {
 
     private static UserSession instance;

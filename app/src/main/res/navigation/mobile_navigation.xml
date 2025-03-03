@@ -2,47 +2,40 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/parkingListViewFragment">
+    app:startDestination="@id/nav_parking_history">
 
     <fragment
-        android:id="@+id/nav_home"
-        android:name="com.example.spotme_mvp.ui.home.HomeFragment"
-        android:label="@string/menu_home"
-        tools:layout="@layout/fragment_home" />
-
+        android:id="@+id/nav_parking_history"
+        android:name="com.example.spotme_mvp.ui.parking.ParkingListViewFragment"
+        android:label="Parking History"
+        tools:layout="@layout/fragment_parking_list_view" />
     <fragment
         android:id="@+id/nav_gallery"
         android:name="com.example.spotme_mvp.ui.gallery.GalleryFragment"
-        android:label="@string/menu_gallery"
+        android:label="Gallery"
         tools:layout="@layout/fragment_gallery" />
-
     <fragment
         android:id="@+id/nav_slideshow"
         android:name="com.example.spotme_mvp.ui.slideshow.SlideshowFragment"
-        android:label="@string/menu_slideshow"
+        android:label="Slideshow"
         tools:layout="@layout/fragment_slideshow" />
-
     <fragment
         android:id="@+id/parkingFormFragment"
         android:name="com.example.spotme_mvp.ui.parking.ParkingFormFragment"
         android:label="Parking Form"
-        tools:layout="@layout/fragment_parking_form">
-        <action
-            android:id="@+id/action_nav_home_to_parkingFormFragment"
-            app:destination="@id/parkingFormFragment" />
-    </fragment>
-
+        tools:layout="@layout/fragment_parking_form" />
     <fragment
         android:id="@+id/parkingListViewFragment"
         android:name="com.example.spotme_mvp.ui.parking.ParkingListViewFragment"
         android:label="Parking List"
-        tools:layout="@layout/fragment_parking_list_view" />
-
+        tools:layout="@layout/fragment_parking_list_view">
+        <action
+            android:id="@+id/action_parkingListViewFragment_to_parkingDetailViewFragment"
+            app:destination="@id/parkingDetailViewFragment" />
+    </fragment>
     <fragment
         android:id="@+id/parkingDetailViewFragment"
         android:name="com.example.spotme_mvp.ui.parking.ParkingDetailViewFragment"
         android:label="Parking Detail"
         tools:layout="@layout/fragment_parking_detail_view" />
-
 </navigation>

@@ -68,7 +68,7 @@ public class ParkingListViewFragment extends Fragment {
                     Parking parking = parkings.get(position);
                     NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment_content_main);
                     if (navController.getCurrentDestination() != null
-                            && navController.getCurrentDestination().getId() != R.id.parkingFormFragment) {
+                            && navController.getCurrentDestination().getId() != R.id.parkingDetailViewFragment) {
                         Bundle bundle = new Bundle();
                         bundle.putSerializable("parking", parking);
                         navController.navigate(R.id.parkingDetailViewFragment, bundle);

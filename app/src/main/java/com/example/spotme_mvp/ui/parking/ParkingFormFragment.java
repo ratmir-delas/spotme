@@ -22,6 +22,8 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.room.Room;
 
 import com.example.spotme_mvp.R;
@@ -96,7 +98,6 @@ public class ParkingFormFragment extends Fragment {
 
         btnSave.setOnClickListener(v -> saveParking());
     }
-
     private void saveParking() {
         Parking parking = mViewModel.getParking().getValue();
         if (parking == null) {
@@ -133,9 +134,12 @@ public class ParkingFormFragment extends Fragment {
                 db.parkingDao().update(finalParking);
             }
 
-            requireActivity().runOnUiThread(() ->
-                    Toast.makeText(requireContext(), "Estacionamento salvo!", Toast.LENGTH_SHORT).show()
-            );
+            requireActivity().runOnUiThread(() -> {
+                Toast.makeText(requireContext(), "Estacionamento salvo!", Toast.LENGTH_SHORT).show();
+                // Navegar de volta para a lista de estacionamentos
+                NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment_content_main);
+                navController.navigate(R.id.parkingListViewFragment);
+            });
         });
     }
 
