@@ -20,19 +20,19 @@
         android:label="Slideshow"
         tools:layout="@layout/fragment_slideshow" />
     <fragment
-        android:id="@+id/parkingFormFragment"
-        android:name="com.example.spotme_mvp.ui.parking.ParkingFormFragment"
-        android:label="Parking Form"
-        tools:layout="@layout/fragment_parking_form" />
-    <fragment
         android:id="@+id/parkingListViewFragment"
         android:name="com.example.spotme_mvp.ui.parking.ParkingListViewFragment"
         android:label="Parking List"
         tools:layout="@layout/fragment_parking_list_view">
         <action
-            android:id="@+id/action_parkingListViewFragment_to_parkingDetailViewFragment"
-            app:destination="@id/parkingDetailViewFragment" />
+            android:id="@+id/action_parkingListViewFragment_to_parkingFormFragment"
+            app:destination="@id/parkingFormFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/parkingFormFragment"
+        android:name="com.example.spotme_mvp.ui.parking.ParkingFormFragment"
+        android:label="Parking Form"
+        tools:layout="@layout/fragment_parking_form" />
     <fragment
         android:id="@+id/parkingDetailViewFragment"
         android:name="com.example.spotme_mvp.ui.parking.ParkingDetailViewFragment"

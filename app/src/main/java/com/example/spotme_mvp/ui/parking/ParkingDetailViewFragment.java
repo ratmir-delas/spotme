@@ -5,10 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,11 +29,14 @@ import java.util.Locale;
 
 public class ParkingDetailViewFragment extends Fragment {
 
-    private ParkingDetailViewViewModel mViewModel;
-    private TextView titleTextView, descriptionTextView, startTimeTextView, endTimeTextView;
-    private Button buttonOpenMaps;
+    private TextView tvParkingLocation, tvParkingTime, tvCoordinates, tvTimer, tvTimerWarning;
+    private EditText etNotes;
+    private ImageButton btnBack, btnCopyCoordinates;
+    private ImageView ivSearch;
+    private Button btnShare, btnViewPhoto, btnRoute;
 
     private Parking parking;
+    private CountDownTimer countDownTimer;
 
     public static ParkingDetailViewFragment newInstance() {
         return new ParkingDetailViewFragment();
@@ -40,17 +47,30 @@ public class ParkingDetailViewFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_parking_detail_view, container, false);
 
-        titleTextView = root.findViewById(R.id.textViewTitle);
-        descriptionTextView = root.findViewById(R.id.textViewDescription);
-        startTimeTextView = root.findViewById(R.id.textViewStartTime);
-        endTimeTextView = root.findViewById(R.id.textViewEndTime);
-        buttonOpenMaps = root.findViewById(R.id.buttonOpenMaps);
+        // Initialize views
+        btnCopyCoordinates = root.findViewById(R.id.btn_copy_coordinates);
+        tvParkingLocation = root.findViewById(R.id.tv_parking_location);
+        tvParkingTime = root.findViewById(R.id.tv_parking_time);
+        tvCoordinates = root.findViewById(R.id.tv_coordinates);
+        tvTimer = root.findViewById(R.id.tv_timer);
+        tvTimerWarning = root.findViewById(R.id.tv_timer_warning);
+        etNotes = root.findViewById(R.id.et_notes);
+        btnShare = root.findViewById(R.id.btn_share);
+        btnViewPhoto = root.findViewById(R.id.btn_view_photo);
+        btnRoute = root.findViewById(R.id.btn_route);
 
-        // Obter dados do estacionamento (deve ser passado via argumentos)
+        // Set up listeners
+        btnCopyCoordinates.setOnClickListener(v -> copyCoordinatesToClipboard());
+        btnShare.setOnClickListener(v -> shareParkingDetails());
+        btnViewPhoto.setOnClickListener(v -> viewPhoto());
+        btnRoute.setOnClickListener(v -> openInMaps(requireContext(), parking.getLatitude(), parking.getLongitude()));
+
+        // Get parking data from arguments
         if (getArguments() != null) {
             parking = (Parking) getArguments().getSerializable("parking");
             if (parking != null) {
                 preencherDetalhes(parking);
+                startTimer(parking);
             }
         }
 
@@ -58,34 +78,78 @@ public class ParkingDetailViewFragment extends Fragment {
     }
 
     private void preencherDetalhes(Parking parking) {
-        titleTextView.setText(parking.getTitle());
-        descriptionTextView.setText(parking.getDescription());
+        tvParkingLocation.setText(parking.getTitle());
+        tvParkingTime.setText("Hora de Início: " + formatDate(parking.getStartTime()) + "\nHora de Fim: " + formatDate(parking.getEndTime()));
+        tvCoordinates.setText(parking.getLatitude() + ", " + parking.getLongitude());
+        etNotes.setText(parking.getDescription());
+        // Set other details as needed
+    }
 
+    private String formatDate(long time) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+        return time == 0 ? "Ainda em andamento" : sdf.format(new Date(time));
+    }
 
-        // Converter e exibir Start Time
-        String startTimeStr = sdf.format(new Date(parking.getStartTime()));
-        startTimeTextView.setText("Início: " + startTimeStr);
+    private void copyCoordinatesToClipboard() {
+        // Implement copy to clipboard functionality
+        Toast.makeText(requireContext(), "Coordinates copied to clipboard", Toast.LENGTH_SHORT).show();
+    }
 
-        // Verificar se End Time é válido
-        if (parking.getEndTime() == 0) {
-            endTimeTextView.setText("Fim: Ainda em andamento");
-        } else {
-            String endTimeStr = sdf.format(new Date(parking.getEndTime()));
-            endTimeTextView.setText("Fim: " + endTimeStr);
-        }
+    private void shareParkingDetails() {
+        // Implement share functionality
+    }
 
-        buttonOpenMaps.setOnClickListener(v -> {
-            openInMaps(requireContext(), parking.getLatitude(), parking.getLongitude());
-        });
+    private void viewPhoto() {
+        // Implement view photo functionality
     }
 
     @SuppressLint("QueryPermissionsNeeded")
     public void openInMaps(Context context, double latitude, double longitude) {
         Uri gmmIntentUri = Uri.parse("geo:" + latitude + "," + longitude + "?q=" + latitude + "," + longitude);
         Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-        mapIntent.setPackage(null); // Forçar a escolha de um app de mapas
+        mapIntent.setPackage(null); // Force the user to choose a maps app
         startActivity(mapIntent);
     }
 
+    private void startTimer(Parking parking) {
+        long currentTime = System.currentTimeMillis();
+        long startTime = parking.getStartTime();
+        long allowedTime = parking.getAllowedTime();
+        long timeLeft = (startTime + allowedTime) - currentTime;
+
+        if (timeLeft > 0) {
+            countDownTimer = new CountDownTimer(timeLeft, 1000) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+                    long seconds = millisUntilFinished / 1000;
+                    long minutes = seconds / 60;
+                    seconds = seconds % 60;
+                    tvTimer.setText(String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds));
+
+                    if (millisUntilFinished <= 3 * 60 * 1000) { // 3 minutes in milliseconds
+                        tvTimerWarning.setText("Atenção! Está quase a terminar!");
+                    } else {
+                        tvTimerWarning.setText("");
+                    }
+                }
+
+                @Override
+                public void onFinish() {
+                    tvTimer.setText("00:00");
+                    tvTimerWarning.setText("Tempo esgotado!");
+                }
+            }.start();
+        } else {
+            tvTimer.setText("00:00");
+            tvTimerWarning.setText("Tempo esgotado!");
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
+        }
+    }
 }
