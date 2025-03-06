@@ -76,10 +76,10 @@ public class ParkingDetailViewFragment extends Fragment {
 
         return root;
     }
-
     private void preencherDetalhes(Parking parking) {
+        parking.updateEndTime(); // Ensure endTime is updated
         tvParkingLocation.setText(parking.getTitle());
-        tvParkingTime.setText("Hora de Início: " + formatDate(parking.getStartTime()) + "\nHora de Fim: " + formatDate(parking.getEndTime()));
+//        tvParkingTime.setText("Hora de Início: " + formatDate(parking.getStartTime()) + "\nHora de Fim: " + formatDate(parking.getEndTime()));
         tvCoordinates.setText(parking.getLatitude() + ", " + parking.getLongitude());
         etNotes.setText(parking.getDescription());
         // Set other details as needed
@@ -96,7 +96,18 @@ public class ParkingDetailViewFragment extends Fragment {
     }
 
     private void shareParkingDetails() {
-        // Implement share functionality
+        if (parking != null) {
+            String shareText = "Localização: " + parking.getTitle() + "\n" +
+                    "Coordenadas: " + parking.getLatitude() + ", " + parking.getLongitude();
+
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("text/plain");
+            shareIntent.putExtra(Intent.EXTRA_TEXT, shareText);
+
+            startActivity(Intent.createChooser(shareIntent, "Compartilhar detalhes do estacionamento"));
+        } else {
+            Toast.makeText(requireContext(), "Detalhes do estacionamento não disponíveis", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void viewPhoto() {
@@ -118,6 +129,7 @@ public class ParkingDetailViewFragment extends Fragment {
         long timeLeft = (startTime + allowedTime) - currentTime;
 
         if (timeLeft > 0) {
+            tvParkingTime.setText("Hora de Início: " + formatDate(parking.getStartTime()) + "\nHora de Fim: Ainda em andamento");
             countDownTimer = new CountDownTimer(timeLeft, 1000) {
                 @Override
                 public void onTick(long millisUntilFinished) {
@@ -137,11 +149,13 @@ public class ParkingDetailViewFragment extends Fragment {
                 public void onFinish() {
                     tvTimer.setText("00:00");
                     tvTimerWarning.setText("Tempo esgotado!");
+                    tvParkingTime.setText("Hora de Início: " + formatDate(parking.getStartTime()) + "\nHora de Fim: " + formatDate(parking.getEndTime()));
                 }
             }.start();
         } else {
             tvTimer.setText("00:00");
             tvTimerWarning.setText("Tempo esgotado!");
+            tvParkingTime.setText("Hora de Início: " + formatDate(parking.getStartTime()) + "\nHora de Fim: " + formatDate(parking.getEndTime()));
         }
     }
 

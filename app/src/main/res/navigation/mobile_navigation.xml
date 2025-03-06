@@ -10,6 +10,11 @@
         android:label="Parking History"
         tools:layout="@layout/fragment_parking_list_view" />
     <fragment
+        android:id="@+id/nav_home"
+        android:name="com.example.spotme_mvp.ui.home.HomeFragment"
+        android:label="Home"
+        tools:layout="@layout/fragment_home" />
+    <fragment
         android:id="@+id/nav_gallery"
         android:name="com.example.spotme_mvp.ui.gallery.GalleryFragment"
         android:label="Gallery"

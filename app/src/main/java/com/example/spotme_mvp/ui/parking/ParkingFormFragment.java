@@ -138,7 +138,7 @@ public class ParkingFormFragment extends Fragment {
                 Toast.makeText(requireContext(), "Estacionamento salvo!", Toast.LENGTH_SHORT).show();
                 // Navegar de volta para a lista de estacionamentos
                 NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment_content_main);
-                navController.navigate(R.id.parkingListViewFragment);
+                navController.navigate(R.id.nav_home);
             });
         });
     }

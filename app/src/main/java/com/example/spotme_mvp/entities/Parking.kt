@@ -36,7 +36,6 @@ class Parking : Serializable {
         longitude: Double,
         allowedTime: Long,
         startTime: Long,
-        endTime: Long,
         description: String?,
         userId: Long?
     ) {
@@ -45,8 +44,12 @@ class Parking : Serializable {
         this.longitude = longitude
         this.allowedTime = allowedTime
         this.startTime = startTime
-        this.endTime = endTime
+        this.endTime = startTime + allowedTime
         this.description = description
         this.userId = userId
+    }
+
+    fun updateEndTime() {
+        this.endTime = this.startTime + this.allowedTime
     }
 }

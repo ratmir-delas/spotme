@@ -2,27 +2,23 @@ package com.example.spotme_mvp;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.view.Menu;
+import android.view.View;
 import android.widget.TextView;
 
-import com.example.spotme_mvp.ui.authentication.LoginActivity;
-import com.example.spotme_mvp.ui.parking.ParkingFormFragment;
-import com.example.spotme_mvp.utils.UserSession;
-import com.google.android.material.snackbar.Snackbar;
-import com.google.android.material.navigation.NavigationView;
-
 import androidx.core.view.GravityCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.spotme_mvp.databinding.ActivityMainBinding;
+import com.example.spotme_mvp.ui.authentication.LoginActivity;
+import com.example.spotme_mvp.utils.UserSession;
+import com.google.android.material.navigation.NavigationView;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,18 +35,16 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(binding.appBarMain.toolbar);
         binding.appBarMain.fab.setOnClickListener(view -> {
             NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-
             if (navController.getCurrentDestination() != null
                     && navController.getCurrentDestination().getId() != R.id.parkingFormFragment) {
                 navController.navigate(R.id.parkingFormFragment);
             }
         });
+
         DrawerLayout drawer = binding.drawerLayout;
         NavigationView navigationView = binding.navView;
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
         mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_parking_history, R.id.nav_gallery, R.id.nav_slideshow, R.id.nav_logout)
+                R.id.nav_home, R.id.nav_parking_history, R.id.nav_gallery, R.id.nav_slideshow, R.id.nav_logout)
                 .setOpenableLayout(drawer)
                 .build();
 
@@ -60,7 +54,9 @@ public class MainActivity extends AppCompatActivity {
 
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.nav_parking_history) {
+            if(id == R.id.nav_home) {
+                navController.navigate(R.id.nav_home);
+            }else if (id == R.id.nav_parking_history) {
                 navController.navigate(R.id.nav_parking_history);
             } else if (id == R.id.nav_gallery) {
                 navController.navigate(R.id.nav_gallery);
@@ -84,12 +80,10 @@ public class MainActivity extends AppCompatActivity {
         TextView navHeaderEmail = headerView.findViewById(R.id.textViewEmail);
         navHeaderName.setText(userSession.getUserName());
         navHeaderEmail.setText(userSession.getUserEmail());
-
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
