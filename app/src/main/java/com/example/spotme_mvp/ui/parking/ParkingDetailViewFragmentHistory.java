@@ -1,11 +1,13 @@
 package com.example.spotme_mvp.ui.parking;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,34 +28,43 @@ import androidx.core.app.NotificationCompat;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 
 import com.example.spotme_mvp.MainActivity;
 import com.example.spotme_mvp.R;
+import com.example.spotme_mvp.database.AppDatabase;
+import com.example.spotme_mvp.database.ParkingDao;
 import com.example.spotme_mvp.entities.Parking;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class ParkingDetailViewFragment extends Fragment {
+public class ParkingDetailViewFragmentHistory extends Fragment {
 
     private TextView tvParkingLocation, tvParkingTime, tvCoordinates, tvTimer, tvTimerWarning;
     private EditText etNotes;
-    private ImageButton btnBack, btnCopyCoordinates;
+    private ImageButton btnCopyCoordinates, btnEdit, btnDelete;
     private ImageView ivSearch;
     private Button btnShare, btnViewPhoto, btnRoute;
 
     private Parking parking;
     private CountDownTimer countDownTimer;
 
-    public static ParkingDetailViewFragment newInstance() {
-        return new ParkingDetailViewFragment();
+    private ParkingDao parkingDao;
+
+    public static ParkingDetailViewFragmentHistory newInstance() {
+        return new ParkingDetailViewFragmentHistory();
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_parking_detail_view, container, false);
+        View root = inflater.inflate(R.layout.fragment_parking_detail_view_history, container, false);
+
+        AppDatabase db = AppDatabase.getInstance(getContext());
+        parkingDao = db.parkingDao();
 
         // Initialize views
         btnCopyCoordinates = root.findViewById(R.id.btn_copy_coordinates);
@@ -66,12 +77,17 @@ public class ParkingDetailViewFragment extends Fragment {
         btnShare = root.findViewById(R.id.btn_share);
         btnViewPhoto = root.findViewById(R.id.btn_view_photo);
         btnRoute = root.findViewById(R.id.btn_route);
+        btnEdit = root.findViewById(R.id.btn_edit_notes);
+        btnDelete = root.findViewById(R.id.btn_delete);
 
         // Set up listeners
         btnCopyCoordinates.setOnClickListener(v -> copyCoordinatesToClipboard());
         btnShare.setOnClickListener(v -> shareParkingDetails());
         btnViewPhoto.setOnClickListener(v -> viewPhoto());
         btnRoute.setOnClickListener(v -> openInMaps(requireContext(), parking.getLatitude(), parking.getLongitude()));
+        btnEdit.setOnClickListener(v -> editNotes());
+        btnDelete.setOnClickListener(v -> deleteParking());
+
 
         // Get parking data from arguments
         if (getArguments() != null) {
@@ -84,6 +100,57 @@ public class ParkingDetailViewFragment extends Fragment {
 
         return root;
     }
+
+    private void deleteParking() {
+        if (parking != null) {
+            Log.d("DELETE_PARKING", "Tentando excluir o estacionamento com ID: " + parking.getId());
+
+            new Thread(() -> {
+                parkingDao.delete(parking);
+                requireActivity().runOnUiThread(() -> {
+                    Toast.makeText(requireContext(), "Estacionamento eliminado com sucesso", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(requireContext(), MainActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                });
+            }).start();
+        } else {
+            Log.e("DELETE_PARKING", "Nenhum estacionamento selecionado");
+            Toast.makeText(requireContext(), "Nenhum estacionamento selecionado", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void editNotes() {
+
+        LayoutInflater inflater = LayoutInflater.from(requireContext());
+        View dialogView = inflater.inflate(R.layout.dialog_edit_notes, null);
+
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(requireContext());
+        dialogBuilder.setView(dialogView);
+
+        EditText etEditNotes = dialogView.findViewById(R.id.et_edit_notes);
+        Button btnSaveNotes = dialogView.findViewById(R.id.btn_save_notes);
+
+        etEditNotes.setText(parking.getDescription());
+
+        AlertDialog alertDialog = dialogBuilder.create();
+        alertDialog.show();
+
+        btnSaveNotes.setOnClickListener(v -> {
+            String newNotes = etEditNotes.getText().toString();
+            parking.setDescription(newNotes);
+
+            new Thread(() -> {
+                parkingDao.update(parking);
+                requireActivity().runOnUiThread(() -> {
+                    etNotes.setText(newNotes);
+                    Toast.makeText(requireContext(), "Notas salvas com sucesso", Toast.LENGTH_SHORT).show();
+                    alertDialog.dismiss();
+                });
+            }).start();
+        });
+    }
+
     private void preencherDetalhes(Parking parking) {
         parking.updateEndTime(); // Ensure endTime is updated
         tvParkingLocation.setText(parking.getTitle());

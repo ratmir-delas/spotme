@@ -25,6 +25,9 @@ public interface ParkingDao {
     @Query("SELECT * FROM parking WHERE endTime IS NULL")
     Optional<Parking> getCurrent();
 
+    @Query("SELECT * FROM parking WHERE userId = :userId ORDER BY id DESC LIMIT 1")
+    Parking getLastParkingByUserId(long userId);
+
     @Insert
     void insert(Parking parking);
 
@@ -33,4 +36,8 @@ public interface ParkingDao {
 
     @Delete
     void delete(Parking parking);
+
+    @Query("SELECT * FROM parking WHERE userId = :userId ORDER BY id DESC LIMIT :limit OFFSET :offset")
+    List<Parking> getParkingsByUserIdWithLimit(long userId, int offset, int limit);
+
 }

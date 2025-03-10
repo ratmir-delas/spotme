@@ -19,9 +19,13 @@ import com.example.spotme_mvp.utils.UserSession;
 import com.google.android.material.navigation.NavigationView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.os.Build;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final String CHANNEL_ID = "SpotMeChannel";
     private AppBarConfiguration mAppBarConfiguration;
     private ActivityMainBinding binding;
 
@@ -31,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        createNotificationChannel();
 
         setSupportActionBar(binding.appBarMain.toolbar);
         binding.appBarMain.fab.setOnClickListener(view -> {
@@ -80,6 +86,19 @@ public class MainActivity extends AppCompatActivity {
         TextView navHeaderEmail = headerView.findViewById(R.id.textViewEmail);
         navHeaderName.setText(userSession.getUserName());
         navHeaderEmail.setText(userSession.getUserEmail());
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "Parking Timer Channel";
+            String description = "Channel for parking timer notifications";
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
     }
 
     @Override
