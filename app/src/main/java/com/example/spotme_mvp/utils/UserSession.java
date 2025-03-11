@@ -16,6 +16,7 @@ public class UserSession {
     private static final String KEY_USER_ID = "userId";
     private static final String KEY_USER_NAME = "userName";
     private static final String KEY_USER_EMAIL = "userEmail";
+    private static final String KEY_USER_PROFILE_IMAGE = "userProfileImage";
 
     // Private constructor to ensure it is not instantiated outside the class
     private UserSession(Context context) {
@@ -69,6 +70,35 @@ public class UserSession {
         editor.putString(KEY_USER_NAME, user.getUsername());
         editor.putString(KEY_USER_EMAIL, user.getEmail());
         editor.apply();
+    }
+
+    public void setUserProfileImage(String profileImage) {
+        editor.putString(KEY_USER_PROFILE_IMAGE, profileImage);
+        editor.apply();
+    }
+
+    // Retrieve profileImage
+    public String getUserProfileImage() {
+        return sharedPreferences.getString(KEY_USER_PROFILE_IMAGE, null);
+    }
+
+    // Add this method to the UserSession class
+    public User getUser() {
+        long userId = getUserId();
+        String userName = getUserName();
+        String userEmail = getUserEmail();
+        String userPassword = ""; // Retrieve the password if stored
+        String userPhone = ""; // Retrieve the phone if stored
+        String userProfileImage = getUserProfileImage();
+
+        if (userId != -1 && userName != null && userEmail != null) {
+            User user = new User(userName, userPassword, userEmail, userPhone);
+            user.setId(userId);
+            user.setProfileImage(userProfileImage);
+            return user;
+        } else {
+            return null;
+        }
     }
 
     // Clear session (remove user details)

@@ -26,10 +26,24 @@ public interface UserDao {
 
     @Update
     void update(User user);
+    @Query("UPDATE users SET username = :username WHERE id = :id")
+    void updateNome(String username, int id);
+
+    @Query("UPDATE users SET email = :email WHERE id = :id")
+    void updateEmail(String email, int id);
+
+    @Query("UPDATE users SET password = :password WHERE id = :id")
+    void updatePassword(String password, int id);
+
+    @Query("UPDATE users SET profileImage = :profileImage WHERE id = :id")
+    void updateProfileImage(String profileImage, int id);
 
     @Delete
     void delete(User user);
 
     @Query("SELECT * FROM users WHERE email = :email")
     User getUserByEmail(String email);
+
+    @Query("SELECT * FROM users WHERE email = :email LIMIT 1")
+    User findByEmail(String email);
 }

@@ -110,7 +110,6 @@ public class ParkingDetailViewFragmentHistory extends Fragment {
                 requireActivity().runOnUiThread(() -> {
                     Toast.makeText(requireContext(), "Estacionamento eliminado com sucesso", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(requireContext(), MainActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent);
                 });
             }).start();

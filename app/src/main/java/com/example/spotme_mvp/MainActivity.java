@@ -1,9 +1,12 @@
 package com.example.spotme_mvp;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.core.view.GravityCompat;
@@ -22,6 +25,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.os.Build;
+
+import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -86,6 +91,21 @@ public class MainActivity extends AppCompatActivity {
         TextView navHeaderEmail = headerView.findViewById(R.id.textViewEmail);
         navHeaderName.setText(userSession.getUserName());
         navHeaderEmail.setText(userSession.getUserEmail());
+
+        // Carregar a imagem do utilizador
+        ImageView profileImageView = headerView.findViewById(R.id.imageView);
+        String profileImagePath = userSession.getUserProfileImage();
+        if (profileImagePath != null) {
+            File imgFile = new File(profileImagePath);
+            if (imgFile.exists()) {
+                Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                profileImageView.setImageBitmap(myBitmap);
+            } else {
+                profileImageView.setImageResource(R.drawable.ic_default_profile);
+            }
+        } else {
+            profileImageView.setImageResource(R.drawable.ic_default_profile);
+        }
     }
 
     private void createNotificationChannel() {
