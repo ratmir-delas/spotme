@@ -1,4 +1,4 @@
-package com.example.spotme_mvp.ui.gallery;
+package com.example.spotme_mvp.ui.account;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -7,13 +7,8 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -29,6 +24,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.example.spotme_mvp.MainActivity;
 import com.example.spotme_mvp.R;
 import com.example.spotme_mvp.database.AppDatabase;
 import com.example.spotme_mvp.database.UserDao;
@@ -40,7 +36,7 @@ import java.io.FileOutputStream;
 
 // TO:DO - Implement the Change Image and Profile Statistics View
 
-public class GalleryFragment extends Fragment {
+public class AccountFragment extends Fragment {
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_IMAGE_PICK = 2;
@@ -104,8 +100,9 @@ public class GalleryFragment extends Fragment {
                     userSession.setUserName(newName);
                     tvNome.setText(newName);
                     new Thread(() -> {
-                        userDAO.updateNome(newName, (int) userSession.getUserId());
+                        userDAO.updateNome(newName, userSession.getUserId());
                     }).start();
+                    ((MainActivity) requireActivity()).updateUserName(newName); // Update the hamburger menu
                     Toast.makeText(requireContext(), "Name updated successfully", Toast.LENGTH_SHORT).show();
                     alertDialog.dismiss();
                 } else {
@@ -137,7 +134,7 @@ public class GalleryFragment extends Fragment {
                         if (existingUser == null) {
                             userSession.setUserEmail(newEmail);
                             tvEmail.setText(newEmail);
-                            userDAO.updateEmail(newEmail, (int) userSession.getUserId());
+                            userDAO.updateEmail(newEmail, userSession.getUserId());
                             requireActivity().runOnUiThread(() -> {
                                 Toast.makeText(requireContext(), "Email updated successfully", Toast.LENGTH_SHORT).show();
                                 alertDialog.dismiss();
@@ -148,6 +145,7 @@ public class GalleryFragment extends Fragment {
                             });
                         }
                     }).start();
+                    ((MainActivity) requireActivity()).updateUserEmail(newEmail); // Update the hamburger menu
                 } else {
                     Toast.makeText(requireContext(), "Please enter a valid email", Toast.LENGTH_SHORT).show();
                 }
@@ -179,7 +177,7 @@ public class GalleryFragment extends Fragment {
                     Toast.makeText(requireContext(), "Passwords do not match", Toast.LENGTH_SHORT).show();
                 } else {
                     new Thread(() -> {
-                        userDAO.updatePassword(newPassword, (int) userSession.getUserId());
+                        userDAO.updatePassword(newPassword, userSession.getUserId());
                         requireActivity().runOnUiThread(() -> {
                             Toast.makeText(requireContext(), "Password updated successfully", Toast.LENGTH_SHORT).show();
                             alertDialog.dismiss();
@@ -226,7 +224,10 @@ public class GalleryFragment extends Fragment {
                 profileImage.setImageResource(R.drawable.ic_default_profile); // Set to default image
                 new Thread(() -> {
                     userDAO.updateProfileImage(null, (int) userSession.getUserId());
-                    Toast.makeText(requireContext(), "Profile image removed successfully", Toast.LENGTH_SHORT).show();
+                    requireActivity().runOnUiThread(() -> {
+                        Toast.makeText(requireContext(), "Profile image removed", Toast.LENGTH_SHORT).show();
+                        ((MainActivity) requireActivity()).updateProfileImage(null); // Update the hamburger menu
+                    });
                 }).start();
                 alertDialog.dismiss();
             });
@@ -245,8 +246,15 @@ public class GalleryFragment extends Fragment {
                 Uri selectedImageUri = data.getData();
                 if (selectedImageUri != null) {
                     try {
+                        // Obter o ID do utilizador da sessão
+                        long userId = userSession.getUserId();
+                        if (userId <= 0) {
+                            Log.e("ProfileImage", "ID do utilizador inválido.");
+                            return;
+                        }
+
                         // Copiar a imagem para o armazenamento interno
-                        String imagePath = copyImageToInternalStorage(selectedImageUri);
+                        String imagePath = copyImageToInternalStorage(selectedImageUri, userId);
 
                         if (imagePath != null) {
                             // Atualizar a UI com a nova imagem
@@ -254,7 +262,12 @@ public class GalleryFragment extends Fragment {
 
                             // Guardar o novo caminho na sessão e na base de dados
                             userSession.setUserProfileImage(imagePath);
-                            new Thread(() -> userDAO.updateProfileImage(imagePath, (int) userSession.getUserId())).start();
+                            new Thread(() -> {
+                                userDAO.updateProfileImage(imagePath, userId);
+                                requireActivity().runOnUiThread(() -> {
+                                    ((MainActivity) requireActivity()).updateProfileImage(imagePath); // Atualiza o menu
+                                });
+                            }).start();
                         } else {
                             Log.e("ProfileImage", "Erro ao copiar imagem para armazenamento interno.");
                         }
@@ -265,7 +278,6 @@ public class GalleryFragment extends Fragment {
             }
         }
     }
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -281,34 +293,16 @@ public class GalleryFragment extends Fragment {
         }
     }
 
-    private void carregarImagemDePerfil() {
-        String profileImagePath = userSession.getUserProfileImage();
-        Log.d("ProfileImage", "Caminho guardado na sessão: " + profileImagePath);
-
-        if (profileImagePath != null && !profileImagePath.isEmpty()) {
-            File imgFile = new File(profileImagePath);
-            if (imgFile.exists()) {
-                Log.d("ProfileImage", "Ficheiro encontrado: " + profileImagePath);
-                profileImage.setImageURI(Uri.fromFile(imgFile));
-            } else {
-                Log.e("ProfileImage", "Ficheiro não encontrado: " + profileImagePath);
-                profileImage.setImageResource(R.drawable.ic_default_profile);
-            }
-        } else {
-            Log.e("ProfileImage", "Nenhuma imagem encontrada.");
-            profileImage.setImageResource(R.drawable.ic_default_profile);
-        }
-    }
-
-
-    private String copyImageToInternalStorage(Uri imageUri) {
+    // Método corrigido para garantir que cada utilizador tem a sua própria imagem
+    private String copyImageToInternalStorage(Uri imageUri, long userId) {
         ContextWrapper cw = new ContextWrapper(requireContext());
         File directory = cw.getDir("profile_images", Context.MODE_PRIVATE);
         if (!directory.exists()) {
             directory.mkdirs(); // Criar diretório se não existir
         }
 
-        File imageFile = new File(directory, "profile.jpg"); // Nome fixo para substituir a imagem anterior
+        // Criar nome de ficheiro único baseado no ID do utilizador
+        File imageFile = new File(directory, "profile_" + userId + ".jpg");
 
         try (FileOutputStream fos = new FileOutputStream(imageFile);
              java.io.InputStream inputStream = requireContext().getContentResolver().openInputStream(imageUri)) {
@@ -328,5 +322,49 @@ public class GalleryFragment extends Fragment {
         }
         return null;
     }
+
+    // Método para carregar corretamente a imagem de perfil do utilizador logado
+    private void carregarImagemDePerfil() {
+        long userId = userSession.getUserId();
+        if (userId <= 0) {
+            Log.e("ProfileImage", "ID do utilizador inválido.");
+            profileImage.setImageResource(R.drawable.ic_default_profile);
+            return;
+        }
+
+        String profileImagePath = userSession.getUserProfileImage();
+        Log.d("ProfileImage", "Caminho guardado na sessão: " + profileImagePath);
+
+        if (profileImagePath == null || profileImagePath.isEmpty()) {
+            // Se não houver caminho na sessão, tenta buscar na base de dados
+            new Thread(() -> {
+                String dbImagePath = userDAO.getProfileImage(userSession.getUserId());
+                requireActivity().runOnUiThread(() -> {
+                    if (dbImagePath != null && !dbImagePath.isEmpty()) {
+                        File imgFile = new File(dbImagePath);
+                        if (imgFile.exists()) {
+                            profileImage.setImageURI(Uri.fromFile(imgFile));
+                        } else {
+                            Log.e("ProfileImage", "Ficheiro não encontrado: " + dbImagePath);
+                            profileImage.setImageResource(R.drawable.ic_default_profile);
+                        }
+                    } else {
+                        Log.e("ProfileImage", "Nenhuma imagem encontrada na base de dados.");
+                        profileImage.setImageResource(R.drawable.ic_default_profile);
+                    }
+                });
+            }).start();
+        } else {
+            // Se o caminho está na sessão, carrega diretamente
+            File imgFile = new File(profileImagePath);
+            if (imgFile.exists()) {
+                profileImage.setImageURI(Uri.fromFile(imgFile));
+            } else {
+                Log.e("ProfileImage", "Ficheiro não encontrado: " + profileImagePath);
+                profileImage.setImageResource(R.drawable.ic_default_profile);
+            }
+        }
+    }
+
 
 }

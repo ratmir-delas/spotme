@@ -3,7 +3,6 @@ package com.example.spotme_mvp.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-
 import com.example.spotme_mvp.entities.User;
 
 public class UserSession {
@@ -12,19 +11,20 @@ public class UserSession {
     private static SharedPreferences sharedPreferences;
     private static SharedPreferences.Editor editor;
 
-    // Keys for storing user details
+    // Keys para armazenar dados do utilizador
     private static final String KEY_USER_ID = "userId";
     private static final String KEY_USER_NAME = "userName";
     private static final String KEY_USER_EMAIL = "userEmail";
+    private static final String KEY_USER_PHONE = "userPhone";
+    private static final String KEY_USER_PASSWORD = "userPassword"; // Se precisares armazenar senha
     private static final String KEY_USER_PROFILE_IMAGE = "userProfileImage";
 
-    // Private constructor to ensure it is not instantiated outside the class
+    // Construtor privado (Singleton)
     private UserSession(Context context) {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         editor = sharedPreferences.edit();
     }
 
-    // Method to get the single instance of the class
     public static synchronized UserSession getInstance(Context context) {
         if (instance == null) {
             instance = new UserSession(context.getApplicationContext());
@@ -32,65 +32,27 @@ public class UserSession {
         return instance;
     }
 
-    // Save userId
-    public void setUserId(long userId) {
-        editor.putLong(KEY_USER_ID, userId);
-        editor.apply();
-    }
-
-    // Retrieve userId
-    public long getUserId() {
-        return sharedPreferences.getLong(KEY_USER_ID, -1);  // -1 is the default value if not stored
-    }
-
-    // Save userName
-    public void setUserName(String userName) {
-        editor.putString(KEY_USER_NAME, userName);
-        editor.apply();
-    }
-
-    // Retrieve userName
-    public String getUserName() {
-        return sharedPreferences.getString(KEY_USER_NAME, null);  // null is the default value if not stored
-    }
-
-    // Save userEmail
-    public void setUserEmail(String userEmail) {
-        editor.putString(KEY_USER_EMAIL, userEmail);
-        editor.apply();
-    }
-
-    // Retrieve userEmail
-    public String getUserEmail() {
-        return sharedPreferences.getString(KEY_USER_EMAIL, null);  // null is the default value if not stored
-    }
-
+    // Salvar todos os detalhes do utilizador
     public void setUser(User user) {
         editor.putLong(KEY_USER_ID, user.getId());
         editor.putString(KEY_USER_NAME, user.getUsername());
         editor.putString(KEY_USER_EMAIL, user.getEmail());
+        editor.putString(KEY_USER_PHONE, user.getPhone());
+        editor.putString(KEY_USER_PASSWORD, user.getPassword()); // Apenas se necessário
+        editor.putString(KEY_USER_PROFILE_IMAGE, user.getProfileImage());
         editor.apply();
     }
 
-    public void setUserProfileImage(String profileImage) {
-        editor.putString(KEY_USER_PROFILE_IMAGE, profileImage);
-        editor.apply();
-    }
-
-    // Retrieve profileImage
-    public String getUserProfileImage() {
-        return sharedPreferences.getString(KEY_USER_PROFILE_IMAGE, null);
-    }
-
-    // Add this method to the UserSession class
+    // Obter o objeto completo do utilizador
     public User getUser() {
-        long userId = getUserId();
-        String userName = getUserName();
-        String userEmail = getUserEmail();
-        String userPassword = ""; // Retrieve the password if stored
-        String userPhone = ""; // Retrieve the phone if stored
-        String userProfileImage = getUserProfileImage();
+        long userId = sharedPreferences.getLong(KEY_USER_ID, -1);
+        String userName = sharedPreferences.getString(KEY_USER_NAME, null);
+        String userEmail = sharedPreferences.getString(KEY_USER_EMAIL, null);
+        String userPhone = sharedPreferences.getString(KEY_USER_PHONE, null);
+        String userPassword = sharedPreferences.getString(KEY_USER_PASSWORD, null); // Se necessário
+        String userProfileImage = sharedPreferences.getString(KEY_USER_PROFILE_IMAGE, null);
 
+        // Verifica se os dados do utilizador estão completos
         if (userId != -1 && userName != null && userEmail != null) {
             User user = new User(userName, userPassword, userEmail, userPhone);
             user.setId(userId);
@@ -101,11 +63,58 @@ public class UserSession {
         }
     }
 
-    // Clear session (remove user details)
+    // Métodos individuais para definir e recuperar os atributos
+    public void setUserId(long userId) {
+        editor.putLong(KEY_USER_ID, userId).apply();
+    }
+
+    public long getUserId() {
+        return sharedPreferences.getLong(KEY_USER_ID, -1);
+    }
+
+    public void setUserName(String userName) {
+        editor.putString(KEY_USER_NAME, userName).apply();
+    }
+
+    public String getUserName() {
+        return sharedPreferences.getString(KEY_USER_NAME, null);
+    }
+
+    public void setUserEmail(String userEmail) {
+        editor.putString(KEY_USER_EMAIL, userEmail).apply();
+    }
+
+    public String getUserEmail() {
+        return sharedPreferences.getString(KEY_USER_EMAIL, null);
+    }
+
+    public void setUserPhone(String userPhone) {
+        editor.putString(KEY_USER_PHONE, userPhone).apply();
+    }
+
+    public String getUserPhone() {
+        return sharedPreferences.getString(KEY_USER_PHONE, null);
+    }
+
+    public void setUserPassword(String userPassword) {
+        editor.putString(KEY_USER_PASSWORD, userPassword).apply();
+    }
+
+    public String getUserPassword() {
+        return sharedPreferences.getString(KEY_USER_PASSWORD, null);
+    }
+
+    public void setUserProfileImage(String profileImage) {
+        editor.putString(KEY_USER_PROFILE_IMAGE, profileImage).apply();
+    }
+
+    public String getUserProfileImage() {
+        return sharedPreferences.getString(KEY_USER_PROFILE_IMAGE, null);
+    }
+
+    // Limpar sessão do utilizador
     public void clearSession() {
-        editor.remove(KEY_USER_ID);
-        editor.remove(KEY_USER_NAME);
-        editor.remove(KEY_USER_EMAIL);
+        editor.clear();
         editor.apply();
     }
 }

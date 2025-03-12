@@ -5,7 +5,7 @@
             android:icon="@drawable/ic_menu_mainpage"
             android:title="@string/home" />
         <item
-            android:id="@+id/nav_gallery"
+            android:id="@+id/nav_account"
             android:icon="@drawable/ic_menu_account"
             android:title="@string/account" />
         <item
@@ -13,7 +13,7 @@
             android:icon="@drawable/ic_menu_history"
             android:title="@string/parking_history" />
         <item
-            android:id="@+id/nav_slideshow"
+            android:id="@+id/nav_settings"
             android:icon="@drawable/ic_menu_settings"
             android:title="@string/settings" />
         <item

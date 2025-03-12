@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.ImageView;
@@ -55,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
         DrawerLayout drawer = binding.drawerLayout;
         NavigationView navigationView = binding.navView;
         mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_home, R.id.nav_parking_history, R.id.nav_gallery, R.id.nav_slideshow, R.id.nav_logout)
+                R.id.nav_home, R.id.nav_parking_history, R.id.nav_account, R.id.nav_settings, R.id.nav_logout)
                 .setOpenableLayout(drawer)
                 .build();
 
@@ -69,10 +70,10 @@ public class MainActivity extends AppCompatActivity {
                 navController.navigate(R.id.nav_home);
             }else if (id == R.id.nav_parking_history) {
                 navController.navigate(R.id.nav_parking_history);
-            } else if (id == R.id.nav_gallery) {
-                navController.navigate(R.id.nav_gallery);
-            } else if (id == R.id.nav_slideshow) {
-                navController.navigate(R.id.nav_slideshow);
+            } else if (id == R.id.nav_account) {
+                navController.navigate(R.id.nav_account);
+            } else if (id == R.id.nav_settings) {
+                navController.navigate(R.id.nav_settings);
             } else if (id == R.id.nav_logout) {
                 logout();
             }
@@ -81,8 +82,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         if (savedInstanceState == null) {
-            navigationView.setCheckedItem(R.id.nav_parking_history);
-            navController.navigate(R.id.nav_parking_history);
+            navigationView.setCheckedItem(R.id.nav_home);
+            navController.navigate(R.id.nav_home);
         }
 
         UserSession userSession = UserSession.getInstance(getApplicationContext());
@@ -108,18 +109,58 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "Parking Timer Channel";
-            String description = "Channel for parking timer notifications";
-            int importance = NotificationManager.IMPORTANCE_HIGH;
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
-            channel.setDescription(description);
+    public void updateProfileImage(String imagePath) {
+        NavigationView navigationView = binding.navView;
+        View headerView = navigationView.getHeaderView(0);
+        ImageView profileImageView = headerView.findViewById(R.id.imageView);
 
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
+        if (imagePath != null) {
+            File imgFile = new File(imagePath);
+            if (imgFile.exists()) {
+                Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                profileImageView.setImageBitmap(myBitmap);
+            } else {
+                profileImageView.setImageResource(R.drawable.ic_default_profile);
+            }
+        } else {
+            profileImageView.setImageResource(R.drawable.ic_default_profile);
         }
     }
+
+    public void updateUserName(String name) {
+        NavigationView navigationView = binding.navView;
+        View headerView = navigationView.getHeaderView(0);
+        TextView navHeaderName = headerView.findViewById(R.id.textViewName);
+        navHeaderName.setText(name);
+    }
+
+    public void updateUserEmail(String email) {
+        NavigationView navigationView = binding.navView;
+        View headerView = navigationView.getHeaderView(0);
+        TextView navHeaderEmail = headerView.findViewById(R.id.textViewEmail);
+        navHeaderEmail.setText(email);
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            if (notificationManager == null) {
+                Log.e("Notification", "NotificationManager é null!");
+                return;
+            }
+
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "Parking Timer Channel",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            channel.setDescription("Canal para notificações do temporizador de estacionamento");
+
+            notificationManager.createNotificationChannel(channel);
+            Log.d("Notification", "Notification Channel criado com sucesso!");
+        }
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

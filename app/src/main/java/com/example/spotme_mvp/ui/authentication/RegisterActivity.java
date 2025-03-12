@@ -1,30 +1,31 @@
 package com.example.spotme_mvp.ui.authentication;
 
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.example.spotme_mvp.MainActivity;
 import com.example.spotme_mvp.R;
 import com.example.spotme_mvp.database.AppDatabase;
 import com.example.spotme_mvp.database.UserDao;
 import com.example.spotme_mvp.entities.User;
+import com.example.spotme_mvp.ui.authentication.LoginActivity;
 import com.example.spotme_mvp.utils.UserSession;
+import com.example.spotme_mvp.utils.PasswordUtils; // Classe para Hashing
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class RegisterActivity extends AppCompatActivity {
 
     private EditText usernameEditText, emailEditText, passwordEditText, confirmPasswordEditText, phoneEditText;
     private Button registerButton;
     private TextView loginTextView;
-
     private UserDao userDao;
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +44,6 @@ public class RegisterActivity extends AppCompatActivity {
         confirmPasswordEditText = findViewById(R.id.confirmPasswordEditText);
         registerButton = findViewById(R.id.registerButton);
         loginTextView = findViewById(R.id.loginText);
-
 
         // Ação do botão de registo
         registerButton.setOnClickListener(v -> registerUser());
@@ -73,38 +73,37 @@ public class RegisterActivity extends AppCompatActivity {
         }
 
         // Verifica se o utilizador já existe e regista-o
-        new RegisterUserTask().execute(new User(username, password, email, phone));
+        executorService.execute(() -> {
+            User existingUser = userDao.getUserByEmail(email);
+            if (existingUser != null) {
+                runOnUiThread(() -> showToast("Email já registado!"));
+                return;
+            }
+
+            // Hash da senha antes de salvar
+            String hashedPassword = PasswordUtils.hashPassword(password);
+
+            // Criar e inserir novo usuário na BD
+            User newUser = new User(username, hashedPassword, email, phone);
+            userDao.insert(newUser);
+
+            // Buscar o ID do novo utilizador
+            User registeredUser = userDao.getUserByEmail(email);
+            if (registeredUser != null) {
+                UserSession session = UserSession.getInstance(getApplicationContext());
+                session.setUser(registeredUser);
+                session.setUserProfileImage(registeredUser.getProfileImage()); // Caso tenha imagem
+
+                runOnUiThread(() -> {
+                    showToast("Conta registada com sucesso!");
+                    startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+                    finish();
+                });
+            }
+        });
     }
 
     private void showToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-    }
-
-    private class RegisterUserTask extends AsyncTask<User, Void, String> {
-        @Override
-        protected String doInBackground(User... users) {
-            User existingUser = userDao.login(users[0].getEmail(), users[0].getPassword());
-            if (existingUser != null) {
-                return "Email já registado!";
-            }
-            userDao.insert(users[0]);
-
-            // Configurar o UserSession com o ID do novo usuário
-            User newUser = userDao.getUserByEmail(users[0].getEmail());
-            if (newUser != null) {
-                // Após inserir, configuramos a sessão
-                UserSession.getInstance(getApplicationContext()).setUser(newUser);
-            }
-            return "Conta registada com sucesso!";
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            showToast(result);
-            if (result.equals("Conta registada com sucesso!")) {
-                startActivity(new Intent(RegisterActivity.this, MainActivity.class));
-                finish();
-            }
-        }
+        runOnUiThread(() -> Toast.makeText(this, message, Toast.LENGTH_SHORT).show());
     }
 }

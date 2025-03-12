@@ -1,20 +1,18 @@
-package com.example.spotme_mvp.ui.slideshow;
+package com.example.spotme_mvp.ui.settings;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 
 import com.example.spotme_mvp.R;
 import com.example.spotme_mvp.databinding.FragmentSlideshowBinding;
 import com.example.spotme_mvp.utils.UserSession;
 
-public class SlideshowFragment extends Fragment {
+public class SettingsFragment extends Fragment {
 
     private UserSession userSession;
     private FragmentSlideshowBinding binding;

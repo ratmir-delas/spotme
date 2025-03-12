@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -139,18 +140,32 @@ public class ParkingDetailViewFragment extends Fragment {
         if (timeLeft > 0) {
             tvParkingTime.setText("Hora de Início: " + formatDate(parking.getStartTime()) + "\nHora de Fim: Ainda em andamento");
             countDownTimer = new CountDownTimer(timeLeft, 1000) {
+                private boolean notified3min = false;
+                private boolean notified2min = false;
+                private boolean notified1min = false;
+
                 @Override
                 public void onTick(long millisUntilFinished) {
                     long seconds = millisUntilFinished / 1000;
                     long minutes = seconds / 60;
                     seconds = seconds % 60;
+
                     tvTimer.setText(String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds));
 
-                    if (millisUntilFinished <= 3 * 60 * 1000) { // 3 minutes in milliseconds
-                        tvTimerWarning.setText("Atenção! Está quase a terminar!");
-                        sendNotification();
-                    } else {
-                        tvTimerWarning.setText("");
+                    Log.d("Timer", "Tempo restante: " + minutes + " min " + seconds + " seg");
+
+                    if (minutes == 3 && !notified3min) {
+                        Log.d("Timer", "Enviando notificação de 3 minutos...");
+                        sendNotification("Faltam 3 minutos para o estacionamento expirar!");
+                        notified3min = true;
+                    } else if (minutes == 2 && !notified2min) {
+                        Log.d("Timer", "Enviando notificação de 2 minutos...");
+                        sendNotification("Faltam 2 minutos para o estacionamento expirar!");
+                        notified2min = true;
+                    } else if (minutes == 1 && !notified1min) {
+                        Log.d("Timer", "Enviando notificação de 1 minuto...");
+                        sendNotification("Faltam 1 minuto para o estacionamento expirar!");
+                        notified1min = true;
                     }
                 }
 
@@ -168,8 +183,13 @@ public class ParkingDetailViewFragment extends Fragment {
         }
     }
 
-    private void sendNotification() {
+    private void sendNotification(String message) {
         NotificationManager notificationManager = (NotificationManager) requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (notificationManager == null) {
+            Log.e("Notification", "NotificationManager é null, verifique as permissões!");
+            return;
+        }
 
         Intent intent = new Intent(requireContext(), MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -178,13 +198,16 @@ public class ParkingDetailViewFragment extends Fragment {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(requireContext(), MainActivity.CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle("Parking Timer")
-                .setContentText("Atenção! O tempo do teu estacionamento está quase a terminar!")
+                .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
 
         notificationManager.notify(1, builder.build());
+
+        Log.d("Notification", "Notificação enviada com sucesso!");
     }
+
 
     @Override
     public void onDestroyView() {
