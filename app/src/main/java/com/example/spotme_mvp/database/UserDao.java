@@ -40,9 +40,11 @@ public interface UserDao {
 
     @Query("SELECT profileImage FROM users WHERE id = :id")
     String getProfileImage(long id);
+    @Query("UPDATE users SET phone = :phone WHERE id = :id")
+    void updatePhone(String phone, long id);
 
-    @Delete
-    void delete(User user);
+    @Query("DELETE FROM users WHERE id = :id")
+    void delete(long id);
 
     @Query("SELECT * FROM users WHERE email = :email")
     User getUserByEmail(String email);

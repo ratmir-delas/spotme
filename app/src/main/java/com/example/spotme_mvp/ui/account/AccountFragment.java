@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -29,6 +30,8 @@ import com.example.spotme_mvp.R;
 import com.example.spotme_mvp.database.AppDatabase;
 import com.example.spotme_mvp.database.UserDao;
 import com.example.spotme_mvp.entities.User;
+import com.example.spotme_mvp.ui.authentication.LoginActivity;
+import com.example.spotme_mvp.utils.PasswordUtils;
 import com.example.spotme_mvp.utils.UserSession;
 
 import java.io.File;
@@ -58,6 +61,8 @@ public class AccountFragment extends Fragment {
         TextView tvNomeLabel = root.findViewById(R.id.tvNomeLabel);
         TextView tvNome = root.findViewById(R.id.tvNome);
         ImageView ivEditNome = root.findViewById(R.id.ivEditNome);
+        TextView tvTelemovel = root.findViewById(R.id.tvTelemovel);
+        ImageView ivEditTelemovel = root.findViewById(R.id.ivEditTelemovel);
         TextView tvEmailLabel = root.findViewById(R.id.tvEmailLabel);
         TextView tvEmail = root.findViewById(R.id.tvEmail);
         ImageView ivEditEmail = root.findViewById(R.id.ivEditEmail);
@@ -66,6 +71,7 @@ public class AccountFragment extends Fragment {
         TextView tvPersonalStats = root.findViewById(R.id.tvPersonalStats);
         ImageView ivArrowStats = root.findViewById(R.id.ivArrowStats);
         ImageView ivEditProfilePhoto = root.findViewById(R.id.ivEditProfilePhoto);
+        TextView tvDeleteAccount = root.findViewById(R.id.tvDeleteAccount);
 
         userSession = UserSession.getInstance(requireContext());
         db = AppDatabase.getInstance(requireContext());
@@ -74,6 +80,7 @@ public class AccountFragment extends Fragment {
         // Set initial values or listeners if needed
         tvNome.setText(userSession.getUserName());
         tvEmail.setText(userSession.getUserEmail());
+        tvTelemovel.setText(userSession.getUserPhone());
 
         carregarImagemDePerfil(); // Load the profile image
 
@@ -88,6 +95,9 @@ public class AccountFragment extends Fragment {
 
             EditText etNewName = dialogView.findViewById(R.id.etNewName);
             Button btnSave = dialogView.findViewById(R.id.btnSave);
+
+            ImageButton buttonClose = dialogView.findViewById(R.id.btnClose);
+            Button buttonCancel = dialogView.findViewById(R.id.btnCancel);
 
             etNewName.setText(userSession.getUserName());
 
@@ -109,6 +119,9 @@ public class AccountFragment extends Fragment {
                     Toast.makeText(requireContext(), "Name cannot be empty", Toast.LENGTH_SHORT).show();
                 }
             });
+
+            buttonClose.setOnClickListener(view -> alertDialog.dismiss());
+            buttonCancel.setOnClickListener(view -> alertDialog.dismiss());
         });
 
         ivEditEmail.setOnClickListener(v -> {
@@ -120,6 +133,9 @@ public class AccountFragment extends Fragment {
 
             EditText etNewEmail = dialogView.findViewById(R.id.etNewEmail);
             Button btnSave = dialogView.findViewById(R.id.btnSave);
+
+            Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+            ImageButton btnClose = dialogView.findViewById(R.id.btnClose);
 
             etNewEmail.setText(userSession.getUserEmail());
 
@@ -151,45 +167,103 @@ public class AccountFragment extends Fragment {
                 }
             });
 
+            btnCancel.setOnClickListener(view -> alertDialog.dismiss());
+            btnClose.setOnClickListener(view -> alertDialog.dismiss());
+
         });
 
-        tvChangePassword.setOnClickListener(v -> {
+        ivEditTelemovel.setOnClickListener(v -> {
             LayoutInflater inflater3 = LayoutInflater.from(requireContext());
-            View dialogView = inflater3.inflate(R.layout.dialog_change_password, null);
+            View dialogView = inflater3.inflate(R.layout.dialog_edit_phone, null);
 
             AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(requireContext());
             dialogBuilder.setView(dialogView);
 
+            EditText etNewPhone = dialogView.findViewById(R.id.etNewPhone);
+            Button btnSave = dialogView.findViewById(R.id.btnSave);
+
+            Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+            ImageButton btnClose = dialogView.findViewById(R.id.btnClose);
+
+            AlertDialog alertDialog = dialogBuilder.create();
+            alertDialog.show();
+
+            etNewPhone.setText(userSession.getUserPhone());
+
+            btnSave.setOnClickListener(view -> {
+                String newPhone = etNewPhone.getText().toString().trim();
+                if (!newPhone.isEmpty()) {
+                    userSession.setUserPhone(newPhone);
+                    tvTelemovel.setText(newPhone);
+                    new Thread(() -> {
+                        userDAO.updatePhone(newPhone, userSession.getUserId());
+                        requireActivity().runOnUiThread(() -> {
+                            Toast.makeText(requireContext(), "Phone number updated successfully", Toast.LENGTH_SHORT).show();
+                            alertDialog.dismiss();
+                        });
+                    }).start();
+                } else {
+                    Toast.makeText(requireContext(), "Phone number cannot be empty", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            btnCancel.setOnClickListener(view -> alertDialog.dismiss());
+            btnClose.setOnClickListener(view -> alertDialog.dismiss());
+        });
+
+        tvChangePassword.setOnClickListener(v -> {
+            LayoutInflater inflater4 = LayoutInflater.from(requireContext());
+            View dialogView = inflater4.inflate(R.layout.dialog_change_password, null);
+
+            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(requireContext());
+            dialogBuilder.setView(dialogView);
+
+            EditText etCurrentPassword = dialogView.findViewById(R.id.etCurrentPassword);
             EditText etNewPassword = dialogView.findViewById(R.id.etNewPassword);
             EditText etConfirmPassword = dialogView.findViewById(R.id.etConfirmPassword);
             Button btnSave = dialogView.findViewById(R.id.btnSave);
+
+            ImageButton btnClose = dialogView.findViewById(R.id.btnClose);
+            Button btnCancel = dialogView.findViewById(R.id.btnCancel);
 
             AlertDialog alertDialog = dialogBuilder.create();
             alertDialog.show();
 
             btnSave.setOnClickListener(view -> {
+                String currentPassword = etCurrentPassword.getText().toString().trim();
                 String newPassword = etNewPassword.getText().toString().trim();
                 String confirmPassword = etConfirmPassword.getText().toString().trim();
 
-                if (newPassword.isEmpty() || confirmPassword.isEmpty()) {
+                if (currentPassword.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty()) {
                     Toast.makeText(requireContext(), "Fields cannot be empty", Toast.LENGTH_SHORT).show();
-                } else if (!newPassword.equals(confirmPassword)) {
-                    Toast.makeText(requireContext(), "Passwords do not match", Toast.LENGTH_SHORT).show();
-                } else {
+                } else if (!currentPassword.equals(userSession.getUserPassword())) {
+                    Toast.makeText(requireContext(), "Current Password failed, try again", Toast.LENGTH_SHORT).show();
+                } else if (newPassword.equals(confirmPassword)) {
+                    String hashedPassword = PasswordUtils.hashPassword(newPassword);
                     new Thread(() -> {
-                        userDAO.updatePassword(newPassword, userSession.getUserId());
+                        userDAO.updatePassword(hashedPassword, userSession.getUserId());
                         requireActivity().runOnUiThread(() -> {
                             Toast.makeText(requireContext(), "Password updated successfully", Toast.LENGTH_SHORT).show();
                             alertDialog.dismiss();
+                            // ir para a tela de login
+                            userSession.clearSession();
+                            Intent intent = new Intent(requireContext(), LoginActivity.class);
+                            startActivity(intent);
+                            requireActivity().finish();
                         });
                     }).start();
+                } else {
+                    Toast.makeText(requireContext(), "Passwords do not match", Toast.LENGTH_SHORT).show();
                 }
             });
+
+            btnClose.setOnClickListener(view -> alertDialog.dismiss());
+            btnCancel.setOnClickListener(view -> alertDialog.dismiss());
         });
 
         ivEditProfilePhoto.setOnClickListener(v -> {
-            LayoutInflater inflater4 = LayoutInflater.from(requireContext());
-            View dialogView = inflater4.inflate(R.layout.dialog_change_profile_image, null);
+            LayoutInflater inflater5 = LayoutInflater.from(requireContext());
+            View dialogView = inflater5.inflate(R.layout.dialog_change_profile_image, null);
 
             AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(requireContext());
             dialogBuilder.setView(dialogView);
@@ -229,10 +303,56 @@ public class AccountFragment extends Fragment {
                         ((MainActivity) requireActivity()).updateProfileImage(null); // Update the hamburger menu
                     });
                 }).start();
+
                 alertDialog.dismiss();
             });
 
             btnCancel.setOnClickListener(view -> alertDialog.dismiss());
+
+        });
+
+        tvDeleteAccount.setOnClickListener(view -> {
+
+            LayoutInflater inflater6 = LayoutInflater.from(requireContext());
+            View dialogView1 = inflater6.inflate(R.layout.dialog_delete_account, null);
+
+            AlertDialog.Builder dialogBuilder1 = new AlertDialog.Builder(requireContext());
+            dialogBuilder1.setView(dialogView1);
+
+            EditText etPassword = dialogView1.findViewById(R.id.etPassword);
+            Button btnDelete = dialogView1.findViewById(R.id.btnDelete);
+
+            ImageButton btnClose = dialogView1.findViewById(R.id.btnClose);
+            Button buttonCancelar = dialogView1.findViewById(R.id.btnCancel);
+
+            AlertDialog alertDialog = dialogBuilder1.create();
+            alertDialog.show();
+
+            btnDelete.setOnClickListener(view1 -> {
+                String password = etPassword.getText().toString().trim();
+                if (password.isEmpty()) {
+                    Toast.makeText(requireContext(), "Password cannot be empty", Toast.LENGTH_SHORT).show();
+                } else if (!password.equals(userSession.getUserPassword())) {
+                    Toast.makeText(requireContext(), "Password failed, try again", Toast.LENGTH_SHORT).show();
+                } else {
+                    new Thread(() -> {
+                        userDAO.delete(userSession.getUserId());
+                        requireActivity().runOnUiThread(() -> {
+                            Toast.makeText(requireContext(), "Account deleted successfully", Toast.LENGTH_SHORT).show();
+                            alertDialog.dismiss();
+                            // ir para a tela de login
+                            userSession.clearSession();
+                            Intent intent = new Intent(requireContext(), LoginActivity.class);
+                            startActivity(intent);
+                            requireActivity().finish();
+                        });
+                    }).start();
+                }
+            });
+
+            btnClose.setOnClickListener(view1 -> alertDialog.dismiss());
+            buttonCancelar.setOnClickListener(view1 -> alertDialog.dismiss());
+
         });
 
         return root;

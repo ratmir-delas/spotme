@@ -87,12 +87,13 @@ public class RegisterActivity extends AppCompatActivity {
             User newUser = new User(username, hashedPassword, email, phone);
             userDao.insert(newUser);
 
-            // Buscar o ID do novo utilizador
+            // Procurar o ID do novo utilizador
             User registeredUser = userDao.getUserByEmail(email);
             if (registeredUser != null) {
                 UserSession session = UserSession.getInstance(getApplicationContext());
                 session.setUser(registeredUser);
                 session.setUserProfileImage(registeredUser.getProfileImage()); // Caso tenha imagem
+                session.setUserPassword(password);
 
                 runOnUiThread(() -> {
                     showToast("Conta registada com sucesso!");

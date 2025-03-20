@@ -109,8 +109,10 @@ public class ParkingDetailViewFragmentHistory extends Fragment {
                 parkingDao.delete(parking);
                 requireActivity().runOnUiThread(() -> {
                     Toast.makeText(requireContext(), "Estacionamento eliminado com sucesso", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(requireContext(), MainActivity.class);
-                    startActivity(intent);
+                  //  Intent intent = new Intent(requireContext(), MainActivity.class);
+                  //  startActivity(intent);
+                    NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment_content_main);
+                    navController.navigate(R.id.nav_parking_history);
                 });
             }).start();
         } else {

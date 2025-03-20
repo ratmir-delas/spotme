@@ -72,7 +72,7 @@ public class LoginActivity extends AppCompatActivity {
 
         if (user == null) {
             runOnUiThread(() -> {
-                showToast("Usuário não encontrado.");
+                showToast("Utilizador não encontrado.");
                 loginButton.setEnabled(true);
             });
             return;
@@ -84,6 +84,8 @@ public class LoginActivity extends AppCompatActivity {
             UserSession session = UserSession.getInstance(getApplicationContext());
             session.setUser(user);
             session.setUserProfileImage(user.getProfileImage()); // Atualizar imagem de perfil
+            session.setUserPassword(password);
+
 
             runOnUiThread(() -> {
                 showToast("Login bem-sucedido!");
