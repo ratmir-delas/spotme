@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace 'com.example.spotme_mvp'
+    namespace 'pt.estga.spotme'
     compileSdk 35
 
     defaultConfig {
-        applicationId "com.example.spotme_mvp"
+        applicationId "pt.estga.spotme"
         minSdk 24
         targetSdk 35
         versionCode 1
@@ -46,6 +46,8 @@ dependencies {
     implementation libs.navigation.ui
     implementation libs.core.ktx
     implementation libs.legacy.support.v4
+    implementation 'de.hdodenhof:circleimageview:3.1.0'
+    implementation 'org.mindrot:jbcrypt:0.4'
 
     implementation libs.play.services.location
 
