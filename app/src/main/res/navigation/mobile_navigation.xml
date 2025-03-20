@@ -6,27 +6,27 @@
 
     <fragment
         android:id="@+id/nav_parking_history"
-        android:name="com.example.spotme_mvp.ui.parking.ParkingListViewFragment"
+        android:name="pt.estga.spotme.ui.parking.ParkingListViewFragment"
         android:label="Parking History"
         tools:layout="@layout/fragment_parking_list_view" />
     <fragment
         android:id="@+id/nav_home"
-        android:name="com.example.spotme_mvp.ui.home.HomeFragment"
+        android:name="pt.estga.spotme.ui.home.HomeFragment"
         android:label="Home"
         tools:layout="@layout/fragment_home" />
     <fragment
         android:id="@+id/nav_account"
-        android:name="com.example.spotme_mvp.ui.account.AccountFragment"
+        android:name="pt.estga.spotme.ui.account.AccountFragment"
         android:label="Account"
         tools:layout="@layout/fragment_gallery" />
     <fragment
         android:id="@+id/nav_settings"
-        android:name="com.example.spotme_mvp.ui.settings.SettingsFragment"
+        android:name="pt.estga.spotme.ui.settings.SettingsFragment"
         android:label="Settings"
         tools:layout="@layout/fragment_slideshow" />
     <fragment
         android:id="@+id/parkingListViewFragment"
-        android:name="com.example.spotme_mvp.ui.parking.ParkingListViewFragment"
+        android:name="pt.estga.spotme.ui.parking.ParkingListViewFragment"
         android:label="Parking List"
         tools:layout="@layout/fragment_parking_list_view">
         <action
@@ -35,17 +35,17 @@
     </fragment>
     <fragment
         android:id="@+id/parkingFormFragment"
-        android:name="com.example.spotme_mvp.ui.parking.ParkingFormFragment"
+        android:name="pt.estga.spotme.ui.parking.ParkingFormFragment"
         android:label="Parking Form"
         tools:layout="@layout/fragment_parking_form" />
     <fragment
         android:id="@+id/parkingDetailViewFragment"
-        android:name="com.example.spotme_mvp.ui.parking.ParkingDetailViewFragment"
+        android:name="pt.estga.spotme.ui.parking.ParkingDetailViewFragment"
         android:label="Parking Detail"
         tools:layout="@layout/fragment_parking_detail_view" />
     <fragment
         android:id="@+id/parkingDetailViewFragmentHistory"
-        android:name="com.example.spotme_mvp.ui.parking.ParkingDetailViewFragmentHistory"
+        android:name="pt.estga.spotme.ui.parking.ParkingDetailViewFragmentHistory"
         android:label="Parking Detail"
         tools:layout="@layout/fragment_parking_detail_view_history" />
 </navigation>
